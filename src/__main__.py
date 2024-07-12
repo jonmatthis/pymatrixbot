@@ -1,7 +1,7 @@
 import os
 
-from dotenv import load_dotenv
 import simplematrixbotlib as botlib
+from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 
@@ -9,16 +9,12 @@ load_dotenv()
 
 BOT_PREFIX = '!'
 
-
 config = botlib.Config()
 config.emoji_verify = True
 config.ignore_unverified_devices = False
 # config.encryption_enabled = True
-homeserver=os.getenv('HOMESERVER_URL')
-username=os.getenv('BOT_USERNAME')
-password=os.getenv('BOT_PASSWORD')
-creds = botlib.Creds(homeserver, username, password)
 
+creds = botlib.Creds(os.getenv('HOMESERVER_URL'), os.getenv('BOT_USERNAME'), os.getenv('BOT_PASSWORD'))
 
 model = ChatAnthropic(model="claude-3-sonnet-20240229")
 BOTERMELON_SYSTEM_PROMPT_CONTENT = """
@@ -34,6 +30,8 @@ BOTERMELON_SYSTEM_PROMPT_CONTENT = """
 BOTERMELON_SYSTEM_PROMPT = SystemMessage(content=BOTERMELON_SYSTEM_PROMPT_CONTENT)
 
 bot = botlib.Bot(creds, config=config)
+
+
 @bot.listener.on_message_event
 async def echo(room, message):
     """
@@ -49,8 +47,9 @@ async def echo(room, message):
         elif match.command("chat"):
             human_message = HumanMessage(content=" ".join(arg for arg in match.args()))
             print(f"Received message: {human_message.content}")
-            ai_response = model.invoke([BOTERMELON_SYSTEM_PROMPT,human_message])
+            ai_response = model.invoke([BOTERMELON_SYSTEM_PROMPT, human_message])
             print(f"AI response: {ai_response}")
             await bot.api.send_text_message(room.room_id, ai_response.content)
+
 
 bot.run()
